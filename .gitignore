@@ -1,0 +1,35 @@
+# --- OS & IDE ---
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# --- Backend (Python/FastAPI) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+.python-version
+
+# --- Frontend (Next.js/Node/pnpm) ---
+node_modules/
+.next/
+out/
+.pnpm-debug.log*
+pnpm-lock.yaml*  # Note: Keep this if you want strict versions in Git, 
+                 # but some devs ignore it. Better to KEEP it.
+
+# --- Environment & Secrets ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Docker ---
+# (Usually we don't ignore docker-compose.yml, but we ignore local data)
+.docker-tmp/
