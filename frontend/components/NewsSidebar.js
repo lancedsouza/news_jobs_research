@@ -14,7 +14,10 @@ export default function NewsSidebar() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/v1/news');
+ // This uses the environment variable if found, otherwise it falls back to your live Railway backend directly
+        const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://newsjobsresearch-production.up.railway.app';
+
+        const res = await fetch(`${BACKEND_URL}/api/v1/news`);
       
       if (!res.ok) {
         throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
