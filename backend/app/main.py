@@ -8,11 +8,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 # Allow your Next.js frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],      # Allows your production site and any Vercel preview links to connect
+    allow_credentials=False,  # Changed to False so FastAPI accepts the wildcard
     allow_methods=["*"],
     allow_headers=["*"],
 )
