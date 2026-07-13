@@ -11,9 +11,9 @@ app = FastAPI(
 # Allow your Next.js frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
+    allow_origins=["https://news-jobs-research.vercel.app"], # Add your specific frontend URL
+    allow_credentials=True, # Set to True
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
