@@ -59,11 +59,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Redis Configuration
-REDIS_HOST = os.getenv("REDIS_HOST", "redis") 
-redis_client = redis.Redis(host=REDIS_HOST, port=6379, db=0)
+# Redis Configuration - Use REDIS_URL from Environment Variables
+# In Render, set REDIS_URL to the Internal URL provided in your Redis dashboard
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 
-# Define TWO distinct cache keys to keep data separated
+# Define distinct cache keys
 MARKET_CACHE_KEY = "market_news_cache"
 CORPORATE_CACHE_KEY = "corporate_news_cache"
 
@@ -76,46 +77,39 @@ def fetch_raw_news(query_string: str):
         response = requests.get(url, timeout=5)
         response.raise_for_status()
         articles = response.json().get("articles", [])
-        return articles[:10] # Keep sidebars sleek
+        return articles[:10] 
     except Exception as e:
         print(f"❌ API Error fetching query [{query_string}]: {e}")
         return []
 
 def get_market_news():
-    """Handles retrieval and caching for general tech/startup market news."""
+    """Handles retrieval and caching for general market news."""
     query = "tech+OR+ai+OR+startups+india"
     try:
         cached_data = redis_client.get(MARKET_CACHE_KEY)
         if cached_data:
-            print("✅ Cache Hit: Serving Market News from Redis")
             return json.loads(cached_data) 
         
-        print("🚀 Cache Miss: Fetching Market News from NewsAPI")
         news_list = fetch_raw_news(query)
-        
         if news_list:
-            redis_client.setex(MARKET_CACHE_KEY, 3600, json.dumps(news_list)) # Cache for 1 hour
+            redis_client.setex(MARKET_CACHE_KEY, 3600, json.dumps(news_list))
         return news_list
-    except redis.exceptions.ConnectionError:
-        print("⚠️ Redis down. Falling back to direct Market fetch.")
+    except Exception as e:
+        print(f"⚠️ Redis error, falling back: {e}")
         return fetch_raw_news(query)
 
 def get_corporate_news():
-    """Handles retrieval and caching for corporate intelligence (funding, earnings)."""
-    # Specific corporate trigger terms to catch active companies
+    """Handles retrieval and caching for corporate intelligence."""
     query = "(corporate+OR+earnings+OR+funding+OR+acquisition+OR+merger)+india"
     try:
         cached_data = redis_client.get(CORPORATE_CACHE_KEY)
         if cached_data:
-            print("💼 Cache Hit: Serving Corporate News from Redis")
             return json.loads(cached_data)
         
-        print("🚀 Cache Miss: Fetching Corporate News from NewsAPI")
         news_list = fetch_raw_news(query)
-        
         if news_list:
-            redis_client.setex(CORPORATE_CACHE_KEY, 3600, json.dumps(news_list)) # Cache for 1 hour
+            redis_client.setex(CORPORATE_CACHE_KEY, 3600, json.dumps(news_list))
         return news_list
-    except redis.exceptions.ConnectionError:
-        print("⚠️ Redis down. Falling back to direct Corporate fetch.")
+    except Exception as e:
+        print(f"⚠️ Redis error, falling back: {e}")
         return fetch_raw_news(query)

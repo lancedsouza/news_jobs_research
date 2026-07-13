@@ -8,19 +8,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
 # Allow your Next.js frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],      # Allows your production site and any Vercel preview links to connect
-    allow_credentials=False,  # Changed to False so FastAPI accepts the wildcard
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register only the news router
+# Register the router once. 
+# Your endpoints will now be at /api/v1/news and /api/v1/corporate
 app.include_router(news_router, prefix="/api/v1", tags=["Market News"])
-app.include_router(news_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

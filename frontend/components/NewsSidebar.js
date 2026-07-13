@@ -1,129 +1,62 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, Building2, RefreshCw, ExternalLink, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-export default function NewsSidebar({ type = "market", title, subtitle }) {
+const NewsSidebar = ({ type, title, subtitle }) => {
   const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchLatestNews = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const BACKEND_URL = 'https://newsjobsresearch-production.up.railway.app';
-      
-      // Select the correct endpoint path matching your FastAPI backend
-      const endpoint = type === 'corporate' ? '/api/v1/corporate' : '/api/v1/news';
-      
-      const res = await fetch(`${BACKEND_URL}${endpoint}`);
-      
-      if (!res.ok) {
-        throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
-      }
-
-      const data = await res.json();
-      setNews(data.results || []);
-    } catch (err) {
-      console.error(`${title} fetch failed:`, err);
-      setError(`Unable to connect to the ${type} feed.`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLatestNews();
+    const fetchNews = async () => {
+      setLoading(true);
+      try {
+        // Construct the URL using your environment variable and the API prefix
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const endpoint = type === 'corporate' ? '/api/v1/corporate' : '/api/v1/news';
+        
+        const response = await fetch(`${baseUrl}${endpoint}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setNews(data.results || []);
+      } catch (error) {
+        console.error("Failed to fetch news:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
   }, [type]);
 
+  if (loading) return <div className="p-4 text-gray-500">Loading {title}...</div>;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full max-h-[80vh]">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-        <div>
-          <h2 className="font-bold text-gray-900 flex items-center gap-2">
-            {type === 'corporate' ? (
-              <Building2 size={20} className="text-indigo-600" />
-            ) : (
-              <TrendingUp size={20} className="text-blue-600" />
-            )}
-            {title}
-          </h2>
-          <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>
-        </div>
-        
-        <button 
-          onClick={fetchLatestNews}
-          disabled={loading}
-          className={`p-2 rounded-lg transition-all hover:bg-gray-200 ${loading ? 'opacity-50' : 'opacity-100'}`}
-          title={`Refresh ${title}`}
-        >
-          <RefreshCw size={18} className={`text-gray-600 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+    <div className="bg-white rounded-lg shadow h-full overflow-hidden flex flex-col">
+      <div className="p-4 border-b">
+        <h2 className="font-bold text-lg">{title}</h2>
+        <p className="text-xs text-gray-400">{subtitle}</p>
       </div>
-
-      {/* Content Stream */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
-        {error && (
-          <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100">
-            {error}
+      <div className="overflow-y-auto flex-1 p-4 space-y-4">
+        {news.map((item, index) => (
+          <div key={index} className="border-b pb-2">
+            <a 
+              href={item.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-sm font-medium hover:text-blue-600 block"
+            >
+              {item.title}
+            </a>
+            <p className="text-xs text-gray-500 mt-1">{item.source?.name}</p>
           </div>
-        )}
-
-        {!loading && news.length > 0 ? (
-          news.map((item, i) => (
-            <div key={i} className="group relative border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-              <a 
-                href={item.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="block space-y-2"
-              >
-                <div className="flex justify-between items-start gap-2">
-                  <h3 className={`text-[13px] font-semibold text-gray-800 leading-tight transition-colors line-clamp-3 ${type === 'corporate' ? 'group-hover:text-indigo-600' : 'group-hover:text-blue-600'}`}>
-                    {item.title}
-                  </h3>
-                  <ExternalLink size={12} className="text-gray-300 shrink-0 mt-1" />
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${type === 'corporate' ? 'text-indigo-600 bg-indigo-50' : 'text-blue-600 bg-blue-50'}`}>
-                    {item.source?.name || "Intelligence"}
-                  </span>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                    <Clock size={10} />
-                    {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent'}
-                  </div>
-                </div>
-              </a>
-            </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            {loading ? (
-              <>
-                <div className={`w-8 h-8 border-4 border-gray-100 rounded-full animate-spin mb-4 ${type === 'corporate' ? 'border-t-indigo-600' : 'border-t-blue-600'}`}></div>
-                <p className="text-xs text-gray-500 font-medium">Scanning Live Data...</p>
-              </>
-            ) : (
-              <p className="text-xs text-gray-400 italic">No insights found. Click the refresh button above.</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="p-3 bg-gray-50/80 border-t border-gray-100">
-        <button 
-          onClick={fetchLatestNews}
-          className={`w-full text-center text-[11px] font-bold text-gray-500 uppercase tracking-widest transition-colors ${type === 'corporate' ? 'hover:text-indigo-600' : 'hover:text-blue-600'}`}
-        >
-          Check for Updates
-        </button>
+        ))}
       </div>
     </div>
   );
-}
+};
 
-
+export default NewsSidebar;
