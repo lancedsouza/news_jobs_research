@@ -22,18 +22,51 @@
 
 # app/api/news_router.py
 from fastapi import APIRouter
-from app.services.news_service import get_market_news, get_corporate_news  # Assuming script name
+from app.services.news_service import (
+    get_market_news,
+    get_corporate_news
+)
+
+from app.worker.tasks import process_news_task
 
 router = APIRouter()
 
+
 @router.get("/news")
 async def get_market_feed():
-    """Serves the right-hand Market Insights feed"""
+
     data = get_market_news()
+
     return {"results": data}
+
 
 @router.get("/corporate")
 async def get_corporate_feed():
-    """Serves the left-hand Corporate Intelligence feed"""
+
     data = get_corporate_news()
+
     return {"results": data}
+
+
+@router.get("/ingest_articles")
+async def ingest_articles():
+
+    articles = get_market_news()
+
+    queued = 0
+
+    for article in articles:
+
+        title = article.get("title")
+        url = article.get("url")
+
+        if url:
+
+            process_news_task.delay(title, url)
+
+            queued += 1
+
+    return {
+        "status": "ingestion triggered",
+        "articles_queued": queued
+    }

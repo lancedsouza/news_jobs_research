@@ -20,6 +20,7 @@ app.add_middleware(
 
 # Register only the news router
 app.include_router(news_router, prefix="/api/v1", tags=["Market News"])
+app.include_router(news_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
