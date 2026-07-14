@@ -10,14 +10,14 @@ app = FastAPI(
 )
 
 # Explicitly defining your Vercel frontend origin
-origins = [
-    "https://news-jobs-research.vercel.app",
-    "http://localhost:3000" # Keeping local dev support
-]
+# origins = [
+#     "https://news-jobs-research.vercel.app",
+#     "http://localhost:3000" # Keeping local dev support
+# ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"], # WARNING: Only use this if the API is not yet handling private user data
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
