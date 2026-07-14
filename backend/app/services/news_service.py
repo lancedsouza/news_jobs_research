@@ -84,7 +84,7 @@ def fetch_raw_news(query_string: str):
 
 def get_market_news():
     """Handles retrieval and caching for general market news."""
-    query = "tech+OR+ai+OR+startups+india"
+    query = "general_news"
     try:
         cached_data = redis_client.get(MARKET_CACHE_KEY)
         if cached_data:
