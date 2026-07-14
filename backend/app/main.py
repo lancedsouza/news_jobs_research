@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# Ensure app.api.news_router is correctly mapped to your file structure
 from app.api.news_router import router as news_router
 
 app = FastAPI(
@@ -8,9 +9,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Allow your Next.js frontend to talk to this API
+# Explicitly defining your Vercel frontend origin
 origins = [
-    "https://news-jobs-research.vercel.app", 
+    "https://news-jobs-research.vercel.app",
+    "http://localhost:3000" # Keeping local dev support
 ]
 
 app.add_middleware(
@@ -20,8 +22,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Register the router once. 
-# Your endpoints will now be at /api/v1/news and /api/v1/corporate
+
+# Router registered with the v1 prefix
 app.include_router(news_router, prefix="/api/v1", tags=["Market News"])
 
 @app.get("/")
