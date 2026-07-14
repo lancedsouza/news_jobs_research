@@ -10,11 +10,12 @@ const NewsSidebar = ({ type, title, subtitle }) => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        // Construct the URL using your environment variable and the API prefix
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        // Construct the URL using your environment variable and the API prefixt:8000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL; // This should be https://news-jobs-research.onrender.com
         const endpoint = type === 'corporate' ? '/api/v1/corporate' : '/api/v1/news';
         
-        const response = await fetch(`${baseUrl}${endpoint}`);
+        const fullUrl = `${baseUrl}${endpoint}`; 
+        const response = await fetch(fullUrl);
         
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
